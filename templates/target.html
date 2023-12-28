@@ -1,0 +1,21 @@
+{% extends "dashboard.html" %}
+{% block main %}
+
+<h1 class="text-body-emphasis">List of scanning {{ target.name }}</h1>
+
+{% for scan in target.scan %}
+
+  <ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
+        <a href="/scan/{{scan.id}}">Scan datetime: {{ scan.generated }}, zap version: {{ scan.version }}</a>
+    <div>
+      <span class="badge bg-danger text-dark" title="High">{{ target.high }}</span>
+      <span class="badge bg-warning text-dark" title="Medium">{{ target.medium }}</span>
+      <span class="badge bg-info text-dark" title="Low">{{ target.low }}</span>
+      <span class="badge bg-secondary text-dark" title="Informational">{{ target.informational }}</span>
+    </div>
+    </li>
+  </ul>
+
+  {% endfor %}
+{% endblock %}
