@@ -25,7 +25,7 @@ Base = declarative_base()
 db = SQLAlchemy(model_class=Base)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(basedir, 'project.db')
+DB_PATH = os.path.join(basedir, 'db', 'dashboard.db')
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 db.init_app(app)
 

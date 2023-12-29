@@ -1,6 +1,6 @@
 FROM python:3.10.10
 
-RUN mkdir /app
+RUN mkdir /app && mkdir /app/db
 WORKDIR /app
 ADD requirements.txt .
 RUN python -m pip install pip -U && python -m pip --no-cache-dir install -r requirements.txt
