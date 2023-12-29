@@ -1,11 +1,22 @@
 FROM python:3.10.10
 
-RUN mkdir /app && mkdir /app/db
+# RUN mkdir /app && mkdir /app/db
+
+# RUN groupadd --gid 2000 zap \
+#   && useradd --uid 2000 --gid zap --shell /bin/bash --create-home zap \
+#   && mkdir /app && chown -R zap:zap /app
+
+
+RUN useradd zap && mkdir /app && mkdir /app/db
+
+
+# RUN python3.10 -m venv /app
 WORKDIR /app
-ADD requirements.txt .
-RUN python -m pip install pip -U && python -m pip --no-cache-dir install -r requirements.txt
-RUN useradd -m zap && chown -R zap:zap /app
-COPY . .
+
+COPY --chown=zap requirements.txt .
+
+RUN python3 -m pip install pip -U && python3 -m pip --no-cache-dir install -r requirements.txt
+COPY --chown=zap . .
 USER zap
 
 EXPOSE 8080/tcp

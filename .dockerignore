@@ -12,3 +12,5 @@ report
 run.py
 .spyproject
 test
+cronjob.yaml
+values.yaml
