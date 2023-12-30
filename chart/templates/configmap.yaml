@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-hooks
+  namespace: {{ .Release.Namespace }}
+data:
+  hooks.py: |
+    #!/usr/bin/env python3
+    import os
+    import json
+    import requests
+
+    url = os.environ["API_HOST"]
+
+    def zap_pre_shutdown(zap):
+        f = open("/zap/wrk/report.json", "r")
+        data = json.load(f)
+        f.close()
+        resp = requests.post(f"{url}/api", json=data)
+        print(resp.text)
+
+    

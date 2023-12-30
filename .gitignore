@@ -2,10 +2,9 @@ report
 project.db
 .spyproject
 test/
-README.md
-chart/
 run.py
 hook.py
+values.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

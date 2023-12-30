@@ -1,0 +1,92 @@
+{{- range $job := .Values.jobs }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "job-{{ $job.name }}"
+  labels:
+    {{- include "zap-dashboard.labels" $ | nindent 4 }}
+spec:
+  concurrencyPolicy: {{ $job.concurrencyPolicy | default "Allow" }}
+  failedJobsHistoryLimit: {{ $job.failedJobsHistoryLimit | default 3 }}
+  successfulJobsHistoryLimit: {{ $job.successfulJobsHistoryLimit | default 3 }}
+  schedule: {{ $job.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ include "zap-dashboard.fullname" $ }}
+            cron: {{ $job.name }}
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+
+        {{- if hasKey $job "securityContext" }}
+          {{- if $job.securityContext.runAsUser }}
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsUser: {{ $job.securityContext.runAsUser }}
+            {{- if $job.securityContext.runAsGroup }}
+            runAsGroup: {{ $job.securityContext.runAsGroup }}
+            {{- end }}
+            {{- if $job.securityContext.fsGroup }}
+            fsGroup: {{ $job.securityContext.fsGroup }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+          containers:
+          - image: ghcr.io/zaproxy/zaproxy:weekly
+            imagePullPolicy: Always
+            name: "job-{{ include "zap-dashboard.fullname" $ }}-{{ $job.name }}"
+            env:
+              - name: API_HOST
+                value: http://{{ include "zap-dashboard.fullname" $ }}:{{ $.Values.service.port }}
+            command: ["{{ $job.scanType | default "zap-baseline.py" }}"]
+            args:
+            {{- with $job.args }}
+{{ toYaml . | indent 14 }}
+              {{- end }}
+              - -I
+              - -t
+              - {{ $job.endpoint }}
+              - -d
+              - -J
+              - report.json
+              - --hook=/zap/hooks/hooks.py
+            {{- with $job.resources }}
+            resources:
+{{ toYaml . | indent 14 }}
+            {{- end }}
+            volumeMounts:
+            - mountPath: /zap/wrk/
+              name: cache-volume
+            - name: hooks
+              mountPath: /zap/hooks/hooks.py
+              subPath: hooks.py
+
+          {{- with $job.nodeSelector }}
+          nodeSelector:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+          {{- with $job.affinity }}
+          affinity:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+          {{- with $job.tolerations }}
+          tolerations:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+          restartPolicy: {{ $job.restartPolicy | default "OnFailure" }}
+
+          volumes:
+            - name: hooks
+              configMap:
+                name: {{ $.Release.Name }}-hooks
+            - name: cache-volume
+              emptyDir:
+                sizeLimit: 32Mi
+{{- end }}

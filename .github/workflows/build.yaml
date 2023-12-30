@@ -15,6 +15,10 @@ env:
   OWNER: ${{ github.repository_owner }}
   MY_TOKEN: ${{ secrets.TOKEN_GIT }}
 
+  PROJECT_NAME: owasp-zap-dashboard
+  HELM_VERSION_TO_INSTALL: 3.2.1
+  HELM_DIR_NAME: helm-repo
+
 
 jobs:
 
@@ -48,3 +52,63 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+
+
+  build-helm:
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout helm repo
+        uses: actions/checkout@v3
+        with:
+          repository: oleksandr-mazur/helm
+          ref: 'gh-pages'
+          path: ${{env.HELM_DIR_NAME}}
+          token: ${{ secrets.TOKEN_GIT }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          path: ${{env.PROJECT_NAME}}
+
+      - name: install helm
+        uses: Azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION_TO_INSTALL }} # default is latest
+
+      - name: build helm chart
+        run: |
+          WORK_DIR=$(pwd)
+          cd ${CHART_PATH}
+          TAG=$(git tag --points-at) && TAG=${TAG:=0.0.4}
+          echo "Use tag: ${TAG}"
+          # Test helm chart
+          helm lint --strict --values values.yaml
+
+          helm package --version ${TAG} --app-version ${TAG} . -d ${WORK_DIR}/${HELM_DIR_NAME}
+
+          cd ${WORK_DIR}/${HELM_DIR_NAME}
+
+          helm repo index --url https://oleksandr-mazur.github.io/helm/ --merge index.yaml .
+
+      - name: Show gh-pages changes
+        run: |
+          cd ${HELM_DIR_NAME}
+          git status
+          git diff
+
+      - name: Commit report
+        run: |
+          cd ${HELM_DIR_NAME}
+          git config --global user.name 'Git action'
+          git config --global user.email 'gitaction@github.com'
+
+          git remote set-url origin https://${OWNER}:${token}@github.com/${OWNER}/helm.git
+
+          git add .
+          git commit -m "Added helm ${PROJECT_NAME}"
+          git push origin gh-pages
+        env:
+          token: ${{ secrets.TOKEN_GIT }}
