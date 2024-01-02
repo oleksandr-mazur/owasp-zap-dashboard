@@ -1,7 +1,185 @@
 {% extends "dashboard.html" %}
 {% block main %}
 
+
 <h1 class="text-body-emphasis">ZAP Scanning Report {{scan.target}}</h1>
 
+
+<p>
+	<h3>Site: {{ scan.target.name }}</h4>
+	<h5>Generated on {{ scan.generated }}</h5>
+	<h5>ZAP Version: {{ scan.version }}</h5>
+</p>
+	
+	<div class="col-4">
+		<h3>Summary of Alerts</h3>
+		<table class="table table-bordered table-sm">
+			<tr class="table-dark">
+				<th width="45%"
+					height="24">Risk Level</th>
+				<th width="55%"
+					align="center">Number of Alerts</th>
+			</tr>
+			<tr>
+				<td class="bg-danger text-light">
+					<div>High</div>
+				</td>
+				<td align="center">
+					<div>{{ scan.high }}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bg-warning text-light">
+					<div>Medium</div>
+				</td>
+				<td align="center">
+					<div>{{ scan.medium }}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bg-primary text-light">
+					<div>Low</div>
+				</td>
+				<td align="center">
+					<div>{{ scan.low }}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bg-info text-light">
+					<div>Informational</div>
+				</td>
+				<td align="center">
+					<div>{{ scan.informational }}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="bg-success text-light">
+					<div>				False Positives:</div>
+				</td>
+				<td align="center">
+					<div>{{ scan.false_positives }}</div>
+				</td>
+			</tr>
+		</table>
+		</div>
+		<div class="col-8>"></div>
+		
+		
+		<div class="col-10">
+		<h3>Alerts</h3>
+		<table class="table table-bordered table-sm">
+			<tr>
+				<th width="60%" height="24">Name</th>
+				<th width="20%"
+					align="center">Risk Level</th>
+				<th width="20%"
+					align="center">Number of Instances</th>
+			</tr>
+			{% for alert in alerts %}
+			<tr>
+				<td><a href="#{{ alert.alertRef }}">{{ alert.name }}</a></td>
+				<td align="center" class="bg-{{ colour[alert.riskdesc.split()[0]]}}">{{ alert.riskdesc.split()[0] }}</td>
+				<td align="center">{{ alert.instances|length }}</td>
+			</tr>
+      {% endfor %}
+		</table>
+		</div>
+		<div class="col-2>"></div>
+		
+		
+		
+		<h3>Alert Detail</h3>
+		
+		{% for alert in alerts %}
+		<p>
+			<table class="table table-bordered table-sm">
+				<tr height="24">
+					<th width="20%" class="bg-{{ colour[alert.riskdesc.split()[0]]}}"><a
+						id="{{ alert.alertRef }}"></a>
+						<div>{{ alert.riskdesc.split()[0] }}</div></th>
+					<th class="bg-{{ colour[alert.riskdesc.split()[0]]}}">{{ alert.name }}</th>
+				</tr>
+				<tr>
+					<td width="20%">Description</td>
+					<td width="80%">
+							<div>{{ alert.desc|safe }}</div>	
+					</td>
+				</tr>
+				<TR vAlign="top">
+					<TD colspan="2"></TD>
+				</TR>
+				{% for instance in alert.instances %}
+					<tr>
+						<td width="20%"
+							class="indent1">URL</td>
+						<td width="80%"><a href="{{ instance.uri }}">{{ instance.uri }}</a></td>
+					</tr>
+					<tr>
+						<td width="20%"
+							class="indent2">Method</td>
+						<td width="80%">{{ instance.method }}</td>
+					</tr>
+					<tr>
+						<td width="20%"
+							class="indent2">Parameter</td>
+						<td width="80%">{{ instance.param }}</td>
+					</tr>
+					<tr>
+						<td width="20%"
+							class="indent2">Attack</td>
+						<td width="80%">{{ instance.attack }}</td>
+					</tr>
+					<tr>
+						<td width="20%"
+							class="indent2">Evidence</td>
+						<td width="80%">{{ instance.evidence }}</td>
+					</tr>
+					<tr>
+						<td width="20%"
+							class="indent2">Other Info</td>
+						<td width="80%">{{ instance.otheinfo }}</td>
+					</tr>
+					
+					{% endfor %}
+				
+				<tr>
+					<td width="20%">Instances</td>
+					<td width="80%">{{ alert.instances|length }}</td>
+				</tr>
+				<tr>
+					<td width="20%">Solution</td>
+					<td width="80%">{{ alert.solution|safe }}</td>
+				</tr>
+				<tr>
+					<td width="20%">Reference</td>
+					<td width="80%">
+
+          {% for x in alert.reference.split('<p>') %}
+          <a href="{{ x|striptags }}">{{ x|striptags }}</a>
+          {% endfor%}
+					</td>
+					
+					
+				</tr>
+				<tr>
+					<td width="20%">CWE Id</td>
+					  
+					<td width="80%">{% if alert.cweid|int > 0 %}<a href="https://cwe.mitre.org/data/definitions/{{ alert.cweid }}.html">{{ alert.cweid }}{% endif %}</a></td>
+
+				</tr>
+				<tr>
+					<td width="20%">WASC Id</td>
+					<td width="80%">{{ alert.wascid }}</td>
+				</tr>
+				<tr>
+					<td width="20%">Plugin Id</td>
+					<td width="80%"><a
+						href="https://www.zaproxy.org/docs/alerts/{{ alert.pluginid }}/">{{ alert.pluginid }}</a></td>
+				</tr>
+			</table>
+			</p>
+			
+			{% endfor %}
+		
 
 {% endblock %}

@@ -11,7 +11,7 @@ from datetime import datetime
 from sqlalchemy import desc
 from sqlalchemy.exc import NoResultFound
 from flask import render_template, jsonify, request, abort, request
-from __init__ import db, app
+from __init__ import db, app, COLOURS
 
 from models import Target, Scan
 
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 def dashboard():
     log.info(f"{request.method} {request.path}, remote addr: {request.remote_addr} {request.user_agent}")
     targets = db.session.execute(db.select(Target)).scalars().all()
-    return render_template('dashboard.html', targets=targets), 200
+    return render_template('dashboard.html', targets=targets, colour=COLOURS), 200
 
 
 @app.route("/target/<target>", methods=['GET'])
@@ -33,14 +33,15 @@ def taget(target):
     obj = db.session.execute(query).scalar_one_or_none()
     if obj is None:
         abort(404, description=f"Target not found /target/{target}")
-    return render_template('target.html', target=obj), 200
+    return render_template('target.html', target=obj, colour=COLOURS), 200
 
 
 @app.route("/scan/<int:scan_id>", methods=['GET'])
 def scan(scan_id: int):
     log.info(f"{request.method} {request.path}, remote addr: {request.remote_addr} {request.user_agent}")
     scan = db.get_or_404(Scan, scan_id)
-    return render_template('scan.html', scan=scan,
+
+    return render_template('scan.html', scan=scan, colour=COLOURS,
                            alerts=json.loads(scan.alerts)), 200
 
 
@@ -87,7 +88,8 @@ def api():
             scan = Scan(
                 version=data["@version"],
                 generated=datetime.strptime(data["@generated"], "%a, %d %b %Y %X"),
-                alerts=json.dumps(data["site"][0]["alerts"])
+                alerts=json.dumps(data["site"][0]["alerts"]),
+                **summary
                 )
             target.scan.append(scan)
 
@@ -102,7 +104,11 @@ def api():
             log.exception(error)
             return jsonify({"text": "Internal error", "status": "error", "code": 500}), 500
 
-    return jsonify({"text": "Bad request", "status": "error", "code": 400}), 400
+    return jsonify({"text": "Bad request",
+                    "status": "error",
+                    "code": 400}
+                   ), 400
+
 
 if __name__ == "__main__":
     with app.app_context():

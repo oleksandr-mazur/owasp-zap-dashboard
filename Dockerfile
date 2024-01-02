@@ -1,14 +1,6 @@
 FROM python:3.10.10
 
-# RUN mkdir /app && mkdir /app/db
-
-# RUN groupadd --gid 2000 zap \
-#   && useradd --uid 2000 --gid zap --shell /bin/bash --create-home zap \
-#   && mkdir /app && chown -R zap:zap /app
-
-
 RUN useradd zap && mkdir /app && mkdir /app/db
-
 
 # RUN python3.10 -m venv /app
 WORKDIR /app
@@ -21,4 +13,4 @@ USER zap
 
 EXPOSE 8080/tcp
 
-ENTRYPOINT ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--timeout", "60"]
+ENTRYPOINT ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--timeout", "60", "--log-level", "error"]

@@ -9,10 +9,10 @@
     <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-action">
         <a href="/scan/{{scan.id}}">Scan datetime: {{ scan.generated }}, zap version: {{ scan.version }}</a>
     <div>
-      <span class="badge bg-danger text-dark" title="High">{{ target.high }}</span>
-      <span class="badge bg-warning text-dark" title="Medium">{{ target.medium }}</span>
-      <span class="badge bg-info text-dark" title="Low">{{ target.low }}</span>
-      <span class="badge bg-secondary text-dark" title="Informational">{{ target.informational }}</span>
+      <span class="badge bg-{{ colour['High']}} text-dark" title="High">{{ target.high }}</span>
+      <span class="badge bg-{{ colour['Medium']}} text-dark" title="Medium">{{ target.medium }}</span>
+      <span class="badge bg-{{ colour['Low']}} text-dark" title="Low">{{ target.low }}</span>
+      <span class="badge bg-{{ colour['Informational']}} text-dark" title="Informational">{{ target.informational }}</span>
     </div>
     </li>
   </ul>

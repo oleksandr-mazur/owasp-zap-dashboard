@@ -12,6 +12,13 @@ from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import declarative_base
 
+
+COLOURS = {"High": "danger",
+           "Medium": "warning",
+           "Low": "primary",
+           "Informational": "info",
+           "False Positives": "success"
+           }
 # =============================================================================
 # initialize the app
 # =============================================================================
