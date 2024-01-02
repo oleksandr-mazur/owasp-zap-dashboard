@@ -81,11 +81,16 @@ jobs:
       - name: build helm chart
         run: |
           WORK_DIR=$(pwd)
+          ls -la
+          cd ${PROJECT_NAME}/chart
+
+          ls -la
+
           TAG=$(git tag --points-at) && TAG=${TAG:=0.0.4}
-           echo "Use tag: ${TAG}"
+          echo "Use tag: ${TAG}"
 
           # Test helm chart
-          cd ${PROJECT_NAME}/chart && helm lint --strict --values values.yaml
+          helm lint --strict --values values.yaml
 
           helm package --version ${TAG} --app-version ${TAG} . -d ${WORK_DIR}/${HELM_DIR_NAME}
 
