@@ -84,6 +84,15 @@ tolerations: []
 
 affinity: {}
 
+persistence:
+  enabled: true
+  # -- Size of persistent disk
+  size: 1Gi
+
+
+extraVolumeMounts: []
+extraVolumes: []
+
 
 jobs: {}
   # - name: "devops"

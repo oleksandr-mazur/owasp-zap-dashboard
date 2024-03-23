@@ -28,9 +28,14 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
+        {{- if .Values.persistence.enabled }}
         - name: dashboard-db-storage
           persistentVolumeClaim:
             claimName: dashboard-db
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -52,21 +57,37 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            {{- if .Values.persistence.enabled }}
             - mountPath: "/app/db"
               name: dashboard-db-storage
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
       initContainers:
         - name: init-volume-chown
           image:  busybox:latest
           command: ["sh","-c","chown -R 1000:1000 /app/db"]
           volumeMounts:
+            {{- if .Values.persistence.enabled }}
             - mountPath: "/app/db"
               name: dashboard-db-storage
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
         - name: init-databases
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           command: ["/usr/local/bin/python3", "/app/app.py"]
           volumeMounts:
+            {{- if .Values.persistence.enabled }}
             - mountPath: "/app/db"
               name: dashboard-db-storage
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+              
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
